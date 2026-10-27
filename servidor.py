@@ -105,10 +105,16 @@ def autenticar(sid, data):
         
         sio.emit('nuevo_mensaje', {'user': 'SISTEMA', 'msg': f'--> El usuario [{user_id}] ({grupo}) ha entrado al chat.'})
         
-        # --- CORRECCIÓN: Actualizamos a todos, asegurando que el nuevo también reciba la lista al entrar ---
         enviar_lista_usuarios_global()
     else:
         sio.emit('auth_result', {'success': False, 'message': 'ID o clave incorrectos'}, room=sid)
+
+@sio.event
+def pedir_usuarios(sid):
+    """Responde de forma directa al cliente que solicita la lista de usuarios online"""
+    if sid in usuarios_conectados:
+        lista_online = list(set(info['id'] for info in usuarios_conectados.values()))
+        sio.emit('actualizar_usuarios_online', lista_online, room=sid)
 
 @sio.event
 def mensaje_chat(sid, data):
