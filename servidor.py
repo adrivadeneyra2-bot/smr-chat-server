@@ -27,6 +27,7 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
+    # Lista oficial de usuarios de la clase (incluyendo a Hamza)
     usuarios_autorizados = [
         ('adrian', '12', 'usuario'),
         ('javier', '11', 'usuario'),
@@ -35,6 +36,7 @@ def init_db():
         ('noelia', '10', 'usuario'),
         ('rebeca', '09', 'usuario'),
         ('darius', '16', 'usuario'),
+        ('hamza', '13', 'usuario'),       # <--- Añadido correctamente
         ('admin', '9947', 'administrador')
     ]
     
@@ -48,7 +50,6 @@ def init_db():
     conn.close()
 
 def enviar_lista_usuarios_global():
-    """Extrae los IDs únicos de los usuarios conectados y los difunde a todos"""
     lista_online = list(set(info['id'] for info in usuarios_conectados.values()))
     sio.emit('actualizar_usuarios_online', lista_online)
 
@@ -103,8 +104,6 @@ def autenticar(sid, data):
         }, room=sid)
         
         sio.emit('nuevo_mensaje', {'user': 'SISTEMA', 'msg': f'--> El usuario [{user_id}] ({grupo}) ha entrado al chat.'})
-        
-        # Actualizamos la lista lateral en todos los clientes
         enviar_lista_usuarios_global()
     else:
         sio.emit('auth_result', {'success': False, 'message': 'ID o clave incorrectos'}, room=sid)
@@ -189,8 +188,6 @@ def disconnect(sid):
         user_id = user_info['id']
         print(f"[DESCONEXIÓN] El usuario '{user_id}' se ha desconectado.")
         sio.emit('nuevo_mensaje', {'user': 'SISTEMA', 'msg': f'<-- El usuario [{user_id}] se ha desconectado.'})
-        
-        # Actualizamos la lista lateral en todos los clientes restantes
         enviar_lista_usuarios_global()
 
 if __name__ == '__main__':
